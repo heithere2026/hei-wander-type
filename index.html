@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HEI Wander Type</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;900&family=Noto+Serif+TC:wght@400;900&family=LXGW+WenKai+TC:wght@400&family=Cormorant+Garamond:wght@500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<style>
+/* Layout: a scrolling control desk on the left, a sticky sheet on the right; stacks on phones. Always black, by request. */
+:root {
+  --bg: #0A0C0C;
+  --panel: #111515;
+  --fg: #EFE9DC;
+  --muted: #8A9693;
+  --faint: #3A4442;
+  --line: #262E2D;
+  --accent: #E8318A;
+  --ui: 'Space Grotesk', 'Noto Sans TC', system-ui, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0A0C0C; --panel: #111515; --fg: #EFE9DC } }
+:root[data-theme="dark"] { --bg: #0A0C0C; --panel: #111515; --fg: #EFE9DC }
+
+html, body { height: 100% }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 13px; margin: 0 }
+.wrap { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; min-height: 100%; padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box }
+@media (max-width: 800px) { .wrap { grid-template-columns: minmax(0, 1fr) } .stage { position: static !important; height: auto !important } .paper { min-height: 60vh } }
+
+.desk { display: flex; flex-direction: column; gap: 22px; min-width: 0 }
+#title svg { width: 100%; height: auto; display: block }
+.sub { color: var(--muted); margin: 6px 0 0; line-height: 1.5 }
+.group { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; position: relative }
+.group::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--wob) no-repeat center / 100% 100% }
+h2 { font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--fg); margin: 0 }
+.note { color: var(--muted); line-height: 1.55; margin: 0; font-size: 12px }
+.mono { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; margin: 0 }
+
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--faint) }
+.seg.wrap4 { grid-auto-flow: row; grid-template-columns: repeat(5, 1fr) }
+.seg.wrap4 button:nth-child(n+6) { grid-column: span 1 }
+.seg button { font: inherit; font-size: 12px; background: transparent; color: var(--muted); border: none; border-right: 1px solid var(--faint); padding: 9px 4px; cursor: pointer; min-width: 0 }
+.seg.wrap4 button { border-bottom: 1px solid var(--faint) }
+.seg button:last-child { border-right: none }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg) }
+.seg button:hover:not([aria-pressed="true"]) { color: var(--fg) }
+
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+label.f { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 12px }
+input[type=text], input[type=number], select, textarea { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--faint); border-radius: 0; padding: 9px 10px; width: 100%; box-sizing: border-box }
+select option { background: var(--panel) }
+textarea { font-family: 'Noto Serif TC', 'Cormorant Garamond', serif; font-size: 18px; resize: vertical; min-height: 72px; line-height: 1.4 }
+input[type=color] { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; border: 1px solid var(--faint); background: transparent; padding: 3px; cursor: pointer; box-sizing: border-box }
+input[type=color]::-webkit-color-swatch-wrapper { padding: 0 }
+input[type=color]::-webkit-color-swatch { border: none }
+input[type=color]::-moz-color-swatch { border: none }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap }
+.sw { width: 18px; height: 18px; border: 1px solid var(--faint); cursor: pointer; padding: 0 }
+.sw[aria-pressed="true"] { outline: 1px solid var(--fg); outline-offset: 2px }
+.check { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; cursor: pointer }
+.check input { accent-color: var(--fg); width: 14px; height: 14px; margin: 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: inherit; font-size: 11px; border: 1px solid var(--faint); background: transparent; color: var(--muted); padding: 4px 9px; cursor: pointer }
+.chip[aria-pressed="true"] { border-color: var(--fg); color: var(--fg) }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+button.act { font: inherit; font-size: 12px; border: 1px solid var(--faint); background: transparent; color: var(--fg); padding: 10px 8px; cursor: pointer }
+button.act.primary { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+button.act:hover { border-color: var(--fg) }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px }
+.status { color: var(--muted); font-size: 12px; min-height: 1.2em; margin: 0 }
+
+/* Fragile sliders: a hand-wobbled hairline track drawn in SVG, a small square thumb. */
+.sl { display: flex; flex-direction: column; gap: 2px }
+.sl .row { display: flex; justify-content: space-between; align-items: baseline; color: var(--muted); font-size: 12px }
+.sl .row output { color: var(--fg); font-variant-numeric: tabular-nums }
+.track { position: relative; height: 22px }
+.track svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible }
+.track .base { fill: none; stroke: var(--faint); stroke-width: 1 }
+.track .done { fill: none; stroke: var(--fg); stroke-width: 1.2 }
+.track input { -webkit-appearance: none; appearance: none; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; cursor: pointer }
+.track input::-webkit-slider-runnable-track { background: transparent; height: 22px }
+.track input::-moz-range-track { background: transparent; height: 22px }
+.track input::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; margin-top: 5.5px; background: var(--fg); border: none; border-radius: 0 }
+.track input::-moz-range-thumb { width: 11px; height: 11px; background: var(--fg); border: none; border-radius: 0 }
+.track input:focus-visible { outline: none }
+.track input:focus-visible::-webkit-slider-thumb { background: var(--accent) }
+.track input:focus-visible::-moz-range-thumb { background: var(--accent) }
+
+.stage { position: sticky; top: 24px; height: calc(100vh - 48px); display: flex; flex-direction: column; gap: 10px; min-width: 0 }
+.paper { flex: 1; overflow: auto; border: 1px solid var(--line); background-color: #0E1111; background-image: linear-gradient(45deg, #161B1B 25%, transparent 25%, transparent 75%, #161B1B 75%), linear-gradient(45deg, #161B1B 25%, transparent 25%, transparent 75%, #161B1B 75%); background-size: 16px 16px; background-position: 0 0, 8px 8px; display: grid; place-items: center; padding: 16px; box-sizing: border-box; min-height: 300px }
+.paper svg { display: block; box-shadow: 0 0 0 1px var(--line) }
+.paper .hit { fill: transparent; cursor: pointer }
+.paper .hit:hover { fill: rgba(232, 49, 138, 0.06); stroke: rgba(232, 49, 138, 0.6); stroke-dasharray: 5 6 }
+.made { padding: 8px max(16px, env(safe-area-inset-left, 0px)) 24px; color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase }
+.hint { color: var(--muted); line-height: 1.6; margin: 0; font-size: 12px; max-width: 80ch }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <aside class="desk">
+    <div>
+      <div id="title" role="img" aria-label="HEI Wander Type"></div>
+      <p class="sub">Every glyph is retraced by a line that gets lost on the way. Works with Chinese and Latin text. Click any glyph in the preview to reroll only that one.</p>
+    </div>
+
+    <section class="group">
+      <h2>Canvas</h2>
+      <div class="seg" id="modeSeg"></div>
+      <div class="seg wrap4" id="ratioSeg"></div>
+      <div class="pair" id="customWrap">
+        <label class="f" for="customW">Width (px)<input type="number" id="customW" min="100" max="8000" step="10"></label>
+        <label class="f" for="customH">Height (px)<input type="number" id="customH" min="100" max="8000" step="10"></label>
+      </div>
+      <div id="longSlot"></div>
+      <p class="mono" id="outSize"></p>
+      <p class="note">Canvas ratio and pixel size apply to the live preview and to SVG / PNG export.</p>
+    </section>
+
+    <section class="group">
+      <h2>Color &amp; background</h2>
+      <div class="pair">
+        <label class="f" for="lineC">Line color<input type="color" id="lineC"></label>
+        <label class="f" for="bgC">Background<input type="color" id="bgC"></label>
+      </div>
+      <div class="pair">
+        <div class="swatches" id="lineSw" aria-label="Line color presets"></div>
+        <div class="swatches" id="bgSw" aria-label="Background presets"></div>
+      </div>
+      <label class="check" for="transparent"><input type="checkbox" id="transparent"> Transparent background</label>
+    </section>
+
+    <section class="group">
+      <h2>Text</h2>
+      <label for="text" class="f">Content (new line = new row, or new column when vertical)<textarea id="text" rows="2"></textarea></label>
+      <div class="seg" id="caseSeg"></div>
+      <div class="seg" id="dirSeg"></div>
+    </section>
+
+    <section class="group">
+      <h2>Random seed</h2>
+      <div class="pair">
+        <label class="f" for="seed">Seed number<input type="number" id="seed" min="1" max="999999" step="1"></label>
+        <div class="f"><span>Generation mode</span><label class="check" for="lock" style="height:34px"><input type="checkbox" id="lock"> Lock shape</label></div>
+      </div>
+      <div class="seg" id="seedSeg">
+        <button type="button" id="prevSeed">Previous</button>
+        <button type="button" id="nextSeed">Next</button>
+        <button type="button" id="randSeed">Random</button>
+      </div>
+      <p class="note">Lock shape freezes the motion, so what you see is what you export.</p>
+    </section>
+
+    <section class="group">
+      <h2>Font</h2>
+      <label class="f" for="font">Skeleton font
+        <select id="font">
+          <option value="Noto Sans TC|400">Noto Sans TC · Light</option>
+          <option value="Noto Sans TC|900">Noto Sans TC · Black</option>
+          <option value="Noto Serif TC|400">Noto Serif TC · Light</option>
+          <option value="Noto Serif TC|900">Noto Serif TC · Black</option>
+          <option value="LXGW WenKai TC|400">LXGW WenKai TC</option>
+          <option value="Cormorant Garamond|500">Cormorant Garamond (Latin)</option>
+          <option value="Space Grotesk|500">Space Grotesk (Latin)</option>
+          <option value="local">Font installed on this computer…</option>
+        </select>
+      </label>
+      <label class="f" for="custom" id="localWrap">Local font name
+        <input type="text" id="custom" placeholder="e.g. Microsoft YaHei, PingFang TC, FZQingKeBenYueSongS-R-GB">
+      </label>
+      <p class="note">The font only sets where the strokes roughly go; the line is redrawn by the program. A local font must be installed on this computer. If it is missing, the browser falls back automatically.</p>
+    </section>
+
+    <section class="group">
+      <h2>Glyph</h2>
+      <div id="glyphSlot"></div>
+    </section>
+
+    <section class="group">
+      <h2>Wander</h2>
+      <div class="chips" id="presets"></div>
+      <div id="wanderSlot"></div>
+    </section>
+
+    <section class="group">
+      <h2>Render</h2>
+      <div id="renderSlot"></div>
+    </section>
+
+    <section class="group">
+      <h2>Export</h2>
+      <div class="btns">
+        <button class="act primary" id="saveSvg" type="button">Download SVG</button>
+        <button class="act primary" id="savePng" type="button">Download PNG</button>
+        <button class="act" id="copySvg" type="button">Copy SVG</button>
+        <button class="act" id="reroll" type="button">Reroll all</button>
+      </div>
+      <p class="status" id="status" role="status"></p>
+    </section>
+  </aside>
+
+  <main class="stage">
+    <div class="paper" id="paper" aria-label="Preview"></div>
+    <p class="hint">SVG is vector, so it scales to any poster or wall size. Exports capture the current frame of the motion.</p>
+  </main>
+</div>
+<footer class="made">HEI Wander Type · Made 2026.10</footer>
+
+<script>
+(function () {
+  const PALETTE = [
+    ['#EFE9DC', 'Plaster white'], ['#0A0C0C', 'Black'], ['#1E2A2A', 'Night-street ink'], ['#8FB3D9', 'Sky blue'],
+    ['#D9A441', 'Arcade ochre'], ['#E8318A', 'Shock pink'], ['#C8281E', 'Constructivist red']
+  ];
+  const PRESETS = [['Clear', 0.25, 0.55], ['Tremble', 0.8, 0.75], ['Feast', 1.2, 0.8], ['Lost', 1.7, 0.84], ['Tangled', 3.2, 0.9]];
+  const RATIOS = ['1:1', '4:3', '3:4', '2:3', '3:2', '16:9', '9:16', '21:9', '4:5', 'A4'];
+  const SIZE = 200, PAD = 60, STEP = 6;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    text: '無謂的人兒', textCase: 'orig', vertical: false,
+    font: 'Noto Sans TC|400', custom: 'Microsoft YaHei',
+    amount: 1.2, inertia: 0.8, speed: 0.6,
+    wscale: 0.42, hscale: 1.1, gap: 28, stroke: 3, zoom: 90,
+    line: '#EFE9DC', bg: '#0A0C0C', transparent: false,
+    seed: 2026, bumps: {}, lock: reduce,
+    mode: 'fit', ratio: '1:1', longSide: 2000, customW: 1920, customH: 1080
+  };
+  try { const saved = JSON.parse(localStorage.getItem('wander-type-v2') || 'null'); if (saved) Object.assign(state, saved); } catch (e) {}
+  const persist = () => { try { localStorage.setItem('wander-type-v2', JSON.stringify(state)); } catch (e) {} };
+
+  // ---------- random ----------
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function gauss(r) { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); }
+  function mix(a, b, c) { let h = Math.imul(a ^ 0x9E3779B9, 0x85EBCA6B) ^ Math.imul(b + 1, 0xC2B2AE35) ^ Math.imul(c + 7, 0x27D4EB2F); h ^= h >>> 15; h = Math.imul(h, 0x2C1B3C6D); h ^= h >>> 12; return (h >>> 0) || 1; }
+  const seedFor = (i) => mix(state.seed, i, state.bumps[i] || 0);
+
+  // ---------- glyph skeleton: rasterize, then trace outlines with marching squares ----------
+  const cache = new Map();
+  const R = 256, G = 2, FPX = Math.round(R * 0.86);
+  const raster = document.createElement('canvas'); raster.width = raster.height = R;
+  const rctx = raster.getContext('2d', { willReadFrequently: true });
+
+  function fontSpec() {
+    if (state.font === 'local') return { fam: state.custom.trim() || 'Noto Sans TC', weight: 400 };
+    const [fam, w] = state.font.split('|'); return { fam, weight: +w };
+  }
+
+  function contours(ch, fam, weight) {
+    const key = fam + '|' + weight + '|' + ch;
+    if (cache.has(key)) return cache.get(key);
+    rctx.clearRect(0, 0, R, R);
+    rctx.fillStyle = '#000'; rctx.textAlign = 'center'; rctx.textBaseline = 'middle';
+    rctx.font = `${weight} ${FPX}px "${fam}", "Noto Sans TC", sans-serif`;
+    const advPx = rctx.measureText(ch).width;
+    const adv = advPx > 0 ? Math.max(0.18, Math.min(1.3, advPx / FPX)) : 1;
+    const loops = [];
+    if (!/\s/.test(ch)) {
+      rctx.fillText(ch, R / 2, R / 2 + R * 0.03);
+      const data = rctx.getImageData(0, 0, R, R).data;
+      const N = R / G;
+      const on = (x, y) => (x < 0 || y < 0 || x >= N || y >= N) ? 0 : (data[((y * G) * R + x * G) * 4 + 3] > 110 ? 1 : 0);
+      const adj = new Map();
+      const link = (a, b) => {
+        const ka = a[0] + ',' + a[1], kb = b[0] + ',' + b[1];
+        if (!adj.has(ka)) adj.set(ka, { p: a, n: [] }); if (!adj.has(kb)) adj.set(kb, { p: b, n: [] });
+        adj.get(ka).n.push(kb); adj.get(kb).n.push(ka);
+      };
+      for (let y = -1; y < N; y++) for (let x = -1; x < N; x++) {
+        const c = on(x, y) * 8 + on(x + 1, y) * 4 + on(x + 1, y + 1) * 2 + on(x, y + 1);
+        if (c === 0 || c === 15) continue;
+        const T = [2 * x + 2, 2 * y + 1], Rt = [2 * x + 3, 2 * y + 2], B = [2 * x + 2, 2 * y + 3], L = [2 * x + 1, 2 * y + 2];
+        switch (c) {
+          case 1: case 14: link(L, B); break;
+          case 2: case 13: link(B, Rt); break;
+          case 3: case 12: link(L, Rt); break;
+          case 4: case 11: link(T, Rt); break;
+          case 6: case 9: link(T, B); break;
+          case 7: case 8: link(T, L); break;
+          case 5: link(L, T); link(B, Rt); break;
+          case 10: link(T, Rt); link(L, B); break;
+        }
+      }
+      const seen = new Set();
+      for (const [k0] of adj) {
+        if (seen.has(k0)) continue;
+        const loop = []; let prev = null, k = k0;
+        while (k && !seen.has(k)) {
+          seen.add(k); const node = adj.get(k); loop.push(node.p);
+          const nxt = node.n.find((q) => q !== prev && !seen.has(q)); prev = k; k = nxt;
+        }
+        if (loop.length > 8) {
+          let pts = loop.map((p) => [p[0] / 2 * G / R, p[1] / 2 * G / R]);
+          for (let pass = 0; pass < 2; pass++) pts = pts.map((p, i) => { const a = pts[(i - 1 + pts.length) % pts.length], b = pts[(i + 1) % pts.length]; return [(a[0] + 2 * p[0] + b[0]) / 4, (a[1] + 2 * p[1] + b[1]) / 4]; });
+          pts.push(pts[0]);
+          loops.push(pts);
+        }
+      }
+    }
+    const out = { loops, adv };
+    cache.set(key, out);
+    return out;
+  }
+
+  function resample(c, step) {
+    const out = [c[0]]; let acc = 0;
+    for (let i = 1; i < c.length; i++) {
+      let [x0, y0] = c[i - 1]; const [x1, y1] = c[i];
+      let seg = Math.hypot(x1 - x0, y1 - y0);
+      while (acc + seg >= step) {
+        const t = (step - acc) / seg; x0 = x0 + (x1 - x0) * t; y0 = y0 + (y1 - y0) * t;
+        out.push([x0, y0]); seg = Math.hypot(x1 - x0, y1 - y0); acc = 0;
+      }
+      acc += seg;
+    }
+    return out;
+  }
+
+  // The seeded random walk gives the shape; the time term t slowly drifts it so the line keeps wandering.
+  function wander(p, amount, inertia, t) {
+    const r = mulberry32(p.s), c = p.pts, ph = p.ph;
+    let px = c[0][0] + gauss(r) * amount * 4, py = c[0][1] + gauss(r) * amount * 4;
+    let vx = 0, vy = 0, dx = 0, dy = 0; const k = 0.25, out = [[px, py]];
+    for (let i = 1; i < c.length; i++) {
+      dx = dx * 0.9 + gauss(r) * amount * 1.6; dy = dy * 0.9 + gauss(r) * amount * 1.6;
+      const ax = amount * 2.2 * (Math.sin(i * 0.12 + t * 1.9 + ph[0]) + 0.6 * Math.sin(i * 0.037 - t * 1.2 + ph[1]));
+      const ay = amount * 2.2 * (Math.sin(i * 0.10 - t * 1.6 + ph[2]) + 0.6 * Math.sin(i * 0.043 + t * 1.05 + ph[3]));
+      for (let s = 0; s < 3; s++) {
+        vx = vx * inertia + (c[i][0] + dx + ax - px) * k * (1 - inertia * 0.6);
+        vy = vy * inertia + (c[i][1] + dy + ay - py) * k * (1 - inertia * 0.6);
+        px += vx; py += vy; out.push([px, py]);
+      }
+    }
+    return out;
+  }
+
+  function pathD(p) {
+    if (p.length < 3) return '';
+    const f = (n) => n.toFixed(1);
+    let d = `M${f(p[0][0])},${f(p[0][1])}`;
+    for (let i = 1; i < p.length - 1; i++) { const mx = (p[i][0] + p[i + 1][0]) / 2, my = (p[i][1] + p[i + 1][1]) / 2; d += `Q${f(p[i][0])},${f(p[i][1])} ${f(mx)},${f(my)}`; }
+    return d;
+  }
+
+  function layout(text, o) {
+    const lines = text.split('\n'), cols = lines.length;
+    const cell = SIZE * o.wscale, chh = SIZE * o.hscale, pad = o.pad ?? PAD;
+    const lineGap = o.vertical ? Math.max(o.gap, 20) + cell * 0.4 : Math.max(o.gap, 20) + chh * 0.15;
+    const glyphs = []; let idx = 0, maxX = pad, maxY = pad;
+    lines.forEach((line, li) => {
+      let cx = pad, cy = pad;
+      if (o.vertical) cx = pad + (cols - 1 - li) * (cell + lineGap); else cy = pad + li * (chh + lineGap);
+      [...line].forEach((ch) => {
+        const g = contours(ch, o.fam, o.weight), i = idx++;
+        let x, y, w;
+        if (o.vertical) { w = cell; x = cx; y = cy; cy += chh + o.gap; }
+        else { w = cell * g.adv; x = cx; y = cy; cx += w + o.gap; }
+        glyphs.push({ i, ch, x, y, w, h: chh, loops: g.loops });
+        maxX = Math.max(maxX, x + w); maxY = Math.max(maxY, y + chh);
+      });
+    });
+    return { glyphs, cell, W: Math.ceil(maxX + pad), H: Math.ceil(maxY + pad) };
+  }
+
+  function makePaths(L, seedOf) {
+    const out = [];
+    for (const g of L.glyphs) {
+      const r = mulberry32(seedOf(g.i));
+      for (const c of g.loops) {
+        const pts = resample(c.map(([u, v]) => [g.x + g.w / 2 + (u - 0.5) * L.cell, g.y + v * g.h]), STEP);
+        out.push({ pts, s: Math.floor(r() * 1e9) + 1, ph: [r() * 6.283, r() * 6.283, r() * 6.283, r() * 6.283] });
+      }
+    }
+    return out;
+  }
+
+  // ---------- canvas ----------
+  function canvasFor(cw0, ch0) {
+    const long = state.longSide;
+    let outW, outH, VW = cw0, VH = ch0, ox = 0, oy = 0;
+    if (state.mode === 'fit') {
+      const s = long / Math.max(cw0, ch0); outW = Math.round(cw0 * s); outH = Math.round(ch0 * s);
+    } else {
+      if (state.mode === 'ratio') {
+        const [a, b] = state.ratio === 'A4' ? [210, 297] : state.ratio.split(':').map(Number);
+        const A = a / b; outW = A >= 1 ? long : Math.round(long * A); outH = A >= 1 ? Math.round(long / A) : long;
+      } else { outW = Math.max(100, Math.min(8000, Math.round(state.customW || 1920))); outH = Math.max(100, Math.min(8000, Math.round(state.customH || 1080))); }
+      const A = outW / outH;
+      if (cw0 / ch0 > A) { VW = cw0; VH = cw0 / A; } else { VH = ch0; VW = ch0 * A; }
+      ox = (VW - cw0) / 2; oy = (VH - ch0) / 2;
+    }
+    return { outW, outH, VW, VH, ox, oy };
+  }
+
+  // ---------- main render ----------
+  let T = 0, paths = [], pathEls = [], cv = null, title = null;
+  const displayText = () => state.textCase === 'upper' ? state.text.toUpperCase() : state.textCase === 'lower' ? state.text.toLowerCase() : state.text;
+
+  function render() {
+    const { fam, weight } = fontSpec();
+    const L = layout(displayText(), { fam, weight, wscale: state.wscale, hscale: state.hscale, gap: state.gap, vertical: state.vertical });
+    paths = makePaths(L, seedFor);
+    cv = canvasFor(L.W, L.H);
+    const hits = L.glyphs.filter((g) => !/\s/.test(g.ch)).map((g) =>
+      `<rect class="hit" data-i="${g.i}" x="${g.x.toFixed(1)}" y="${g.y.toFixed(1)}" width="${g.w.toFixed(1)}" height="${g.h.toFixed(1)}"><title>Click to reroll “${g.ch.replace(/[<&"]/g, '')}”</title></rect>`).join('');
+    const bg = state.transparent ? '' : `<rect width="${cv.VW.toFixed(1)}" height="${cv.VH.toFixed(1)}" fill="${state.bg}"/>`;
+    $('paper').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cv.VW.toFixed(1)} ${cv.VH.toFixed(1)}">${bg}<g transform="translate(${cv.ox.toFixed(1)} ${cv.oy.toFixed(1)})"><g class="ink" fill="none" stroke="${state.line}" stroke-width="${state.stroke}" stroke-linecap="round" stroke-linejoin="round">${paths.map(() => '<path/>').join('')}</g>${hits}</g></svg>`;
+    pathEls = [...$('paper').querySelectorAll('.ink path')];
+    $('outSize').textContent = `Output size: ${cv.outW} × ${cv.outH} px`;
+    drawFrame(); fitPreview();
+  }
+
+  function drawFrame() {
+    for (let k = 0; k < pathEls.length; k++) pathEls[k].setAttribute('d', pathD(wander(paths[k], state.amount, state.inertia, T)));
+    if (title) for (let k = 0; k < title.els.length; k++) title.els[k].setAttribute('d', pathD(wander(title.paths[k], 0.55, 0.72, T * 0.7)));
+  }
+
+  function fitPreview() {
+    const svg = $('paper').querySelector('svg'); if (!svg || !cv) return;
+    const p = $('paper'), aw = Math.max(80, p.clientWidth - 32), ah = Math.max(80, p.clientHeight - 32);
+    const s = Math.min(aw / cv.outW, ah / cv.outH) * state.zoom / 100;
+    svg.style.width = Math.round(cv.outW * s) + 'px'; svg.style.height = Math.round(cv.outH * s) + 'px';
+  }
+  new ResizeObserver(fitPreview).observe($('paper'));
+
+  function exportSvg() {
+    const ds = paths.map((p) => `<path d="${pathD(wander(p, state.amount, state.inertia, T))}"/>`).join('');
+    const bg = state.transparent ? '' : `<rect width="${cv.VW.toFixed(1)}" height="${cv.VH.toFixed(1)}" fill="${state.bg}"/>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${cv.outW}" height="${cv.outH}" viewBox="0 0 ${cv.VW.toFixed(1)} ${cv.VH.toFixed(1)}">${bg}<g transform="translate(${cv.ox.toFixed(1)} ${cv.oy.toFixed(1)})" fill="none" stroke="${state.line}" stroke-width="${state.stroke}" stroke-linecap="round" stroke-linejoin="round">${ds}</g></svg>`;
+  }
+
+  async function renderTitle() {
+    try { await document.fonts.load('700 100px "Space Grotesk"', 'HEI WANDER TYPE'); } catch (e) {}
+    const L = layout('HEI WANDER\nTYPE', { fam: 'Space Grotesk', weight: 700, wscale: 0.72, hscale: 0.62, gap: 2, vertical: false, pad: 14 });
+    const tp = makePaths(L, (i) => mix(77, i, 0));
+    $('title').innerHTML = `<svg viewBox="0 0 ${L.W} ${L.H}" aria-hidden="true"><g fill="none" stroke="${getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#EFE9DC'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${tp.map(() => '<path/>').join('')}</g></svg>`;
+    title = { paths: tp, els: [...$('title').querySelectorAll('path')] };
+    drawFrame();
+  }
+
+  // Motion loop, about 30 fps; idles when locked, speed is 0, or the tab is hidden.
+  let last = 0;
+  function tick(now) {
+    requestAnimationFrame(tick);
+    if (state.lock || state.speed <= 0 || document.hidden) { last = now; return; }
+    if (now - last < 33) return;
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    T += dt * state.speed; drawFrame();
+  }
+  requestAnimationFrame(tick);
+
+  // ---------- fragile sliders ----------
+  const SLIDERS = {
+    longSide: ['Output long side', 500, 6000, 50, (v) => v + 'px', 'longSlot'],
+    wscale: ['Glyph width', 0.2, 1.4, 0.01, (v) => Math.round(v * 100) + '', 'glyphSlot'],
+    hscale: ['Glyph height', 0.5, 2.2, 0.01, (v) => Math.round(v * 100) + '', 'glyphSlot'],
+    gap: ['Letter spacing', -60, 140, 1, (v) => v + '', 'glyphSlot'],
+    amount: ['Wander amplitude', 0, 8, 0.05, (v) => (+v).toFixed(2), 'wanderSlot'],
+    inertia: ['Motion inertia', 0, 0.95, 0.01, (v) => (+v).toFixed(2), 'wanderSlot'],
+    speed: ['Wander speed', 0, 3, 0.05, (v) => (+v).toFixed(2), 'wanderSlot'],
+    stroke: ['Stroke weight', 0.5, 12, 0.1, (v) => (+v).toFixed(1), 'renderSlot'],
+    zoom: ['Preview zoom', 20, 200, 1, (v) => v + '%', 'renderSlot']
+  };
+  const keyHash = (s) => [...s].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261) >>> 0;
+
+  function wobble(seed, amp) {
+    const r = mulberry32(seed), ph = [r() * 6.28, r() * 6.28, r() * 6.28], pts = [];
+    for (let x = 0; x <= 300; x += 4) pts.push([x, 11 + amp * (Math.sin(x * 0.021 + ph[0]) * 1.1 + Math.sin(x * 0.067 + ph[1]) * 0.6 + Math.sin(x * 0.19 + ph[2]) * 0.25) + gauss(r) * 0.18]);
+    return pts;
+  }
+  const poly = (pts) => 'M' + pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(2)).join('L');
+
+  function drawTrack(k) {
+    const [, min, max, step] = SLIDERS[k], el = $(k), v = +el.value;
+    const pct = (v - min) / (max - min);
+    // The line quivers a little as the value moves, so the control feels fragile.
+    const pts = wobble(keyHash(k) + Math.round(v / step) % 7, 2.2);
+    const wrap = el.parentElement;
+    wrap.querySelector('.base').setAttribute('d', poly(pts));
+    wrap.querySelector('.done').setAttribute('d', poly(pts.filter((p) => p[0] <= pct * 300 + 0.01)));
+  }
+
+  Object.entries(SLIDERS).forEach(([k, [label, min, max, step, , slot]]) => {
+    const d = document.createElement('div'); d.className = 'sl';
+    d.innerHTML = `<div class="row"><label for="${k}">${label}</label><output id="${k}V" for="${k}"></output></div><div class="track"><svg viewBox="0 0 300 22" preserveAspectRatio="none" aria-hidden="true"><path class="base" vector-effect="non-scaling-stroke"/><path class="done" vector-effect="non-scaling-stroke"/></svg><input type="range" id="${k}" min="${min}" max="${max}" step="${step}"></div>`;
+    $(slot).appendChild(d);
+  });
+
+  // a wobbly hairline as each section divider, drawn once
+  const divPts = wobble(91, 1.6).map(([x, y]) => [x, y / 22 * 6]);
+  document.documentElement.style.setProperty('--wob', `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 6' preserveAspectRatio='none'><path d='${poly(divPts)}' fill='none' stroke='#3A4442' stroke-width='1' vector-effect='non-scaling-stroke'/></svg>`)}")`);
+
+  // ---------- other controls ----------
+  function seg(el, opts, key, after) {
+    el.innerHTML = '';
+    opts.forEach(([val, label]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = label;
+      b.setAttribute('aria-pressed', String(state[key] === val));
+      b.onclick = () => { state[key] = val; if (after) after(); sync(true); };
+      el.appendChild(b);
+    });
+  }
+
+  function swatchRow(el, key) {
+    el.innerHTML = '';
+    PALETTE.forEach(([hex, name]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'sw'; b.style.background = hex; b.title = name; b.setAttribute('aria-label', name);
+      b.setAttribute('aria-pressed', String(state[key].toLowerCase() === hex.toLowerCase()));
+      b.onclick = () => { state[key] = hex; sync(true); };
+      el.appendChild(b);
+    });
+  }
+
+  function renderPresets() {
+    const el = $('presets'); el.innerHTML = '';
+    PRESETS.forEach(([name, a, i]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = name;
+      b.setAttribute('aria-pressed', String(Math.abs(state.amount - a) < 0.001 && Math.abs(state.inertia - i) < 0.001));
+      b.onclick = () => { state.amount = a; state.inertia = i; sync(false); drawFrame(); };
+      el.appendChild(b);
+    });
+  }
+
+  let raf = 0;
+  function schedule() {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(async () => {
+      const { fam, weight } = fontSpec();
+      try { await document.fonts.load(`${weight} 100px "${fam}"`, displayText() || 'A字'); } catch (e) {}
+      render();
+    });
+  }
+
+  // relayout = true when glyph geometry or canvas changes; false when only motion params change
+  function sync(relayout) {
+    Object.keys(SLIDERS).forEach((k) => { $(k).value = state[k]; $(k + 'V').textContent = SLIDERS[k][4](state[k]); drawTrack(k); });
+    seg($('modeSeg'), [['fit', 'Fit to text'], ['ratio', 'Ratio'], ['custom', 'Custom']], 'mode');
+    seg($('ratioSeg'), RATIOS.map((r) => [r, r]), 'ratio');
+    seg($('caseSeg'), [['orig', 'Original'], ['upper', 'UPPER'], ['lower', 'lower']], 'textCase');
+    seg($('dirSeg'), [[false, 'Horizontal'], [true, 'Vertical']], 'vertical');
+    $('ratioSeg').hidden = state.mode !== 'ratio';
+    $('customWrap').hidden = state.mode !== 'custom';
+    $('longSlot').hidden = state.mode === 'custom';
+    $('customW').value = state.customW; $('customH').value = state.customH;
+    $('lineC').value = state.line; $('bgC').value = state.bg;
+    swatchRow($('lineSw'), 'line'); swatchRow($('bgSw'), 'bg');
+    $('transparent').checked = state.transparent; $('bgC').disabled = state.transparent;
+    $('font').value = state.font; $('localWrap').hidden = state.font !== 'local'; if ($('custom') !== document.activeElement) $('custom').value = state.custom;
+    if ($('seed') !== document.activeElement) $('seed').value = state.seed;
+    $('lock').checked = state.lock;
+    renderPresets(); persist();
+    if (relayout) schedule();
+  }
+
+  const MOTION = new Set(['amount', 'inertia', 'speed']);
+  Object.keys(SLIDERS).forEach((k) => $(k).addEventListener('input', (e) => {
+    state[k] = +e.target.value; $(k + 'V').textContent = SLIDERS[k][4](state[k]); drawTrack(k); persist();
+    if (k === 'zoom') fitPreview();
+    else if (MOTION.has(k)) { renderPresets(); drawFrame(); }
+    else schedule();
+  }));
+
+  $('text').value = state.text;
+  $('text').addEventListener('input', (e) => { state.text = e.target.value; persist(); schedule(); });
+  $('font').addEventListener('change', (e) => { state.font = e.target.value; cache.clear(); sync(true); });
+  $('custom').addEventListener('change', (e) => { state.custom = e.target.value; cache.clear(); sync(true); });
+  $('customW').addEventListener('change', (e) => { state.customW = +e.target.value; sync(true); });
+  $('customH').addEventListener('change', (e) => { state.customH = +e.target.value; sync(true); });
+  $('lineC').addEventListener('input', (e) => { state.line = e.target.value; sync(true); });
+  $('bgC').addEventListener('input', (e) => { state.bg = e.target.value; sync(true); });
+  $('transparent').addEventListener('change', (e) => { state.transparent = e.target.checked; sync(true); });
+  $('lock').addEventListener('change', (e) => { state.lock = e.target.checked; persist(); });
+  const setSeed = (s) => { state.seed = Math.max(1, Math.min(999999, Math.round(s) || 1)); state.bumps = {}; sync(true); };
+  $('seed').addEventListener('change', (e) => setSeed(+e.target.value));
+  $('prevSeed').onclick = () => setSeed(state.seed - 1);
+  $('nextSeed').onclick = () => setSeed(state.seed + 1);
+  $('randSeed').onclick = () => setSeed(Math.floor(Math.random() * 999998) + 1);
+  $('reroll').onclick = () => setSeed(Math.floor(Math.random() * 999998) + 1);
+  $('paper').addEventListener('click', (e) => {
+    const t = e.target.closest('.hit'); if (!t) return;
+    const i = +t.dataset.i; state.bumps[i] = (state.bumps[i] || 0) + 1; persist(); render();
+  });
+
+  // ---------- export ----------
+  const say = (msg) => { $('status').textContent = msg; };
+  const fileBase = () => (state.text.replace(/[\s\\/:*?"<>|]+/g, '').slice(0, 16) || 'wander-type') + '-' + state.seed;
+
+  let downloads = null;
+  (async () => {
+    try { downloads = await (window.claude && window.claude.use ? window.claude.use('downloads') : null); } catch (e) { downloads = null; }
+  })();
+
+  // Outside claude.ai (e.g. GitHub Pages) there is no runtime, so fall back to a plain browser download.
+  function plainDownload(filename, data) {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    say('Saved ' + filename);
+  }
+
+  async function save(filename, data) {
+    if (!downloads) { plainDownload(filename, data); return; }
+    try { await downloads.save({ filename, data }); say('Saved ' + filename); }
+    catch (err) {
+      const c = err && err.code;
+      if (c === 'declined') say('Download cancelled.');
+      else if (c === 'rate_limited') say('A download prompt is already open. Try again in a moment.');
+      else say('Download failed. Try Copy SVG instead.');
+    }
+  }
+
+  $('saveSvg').onclick = () => save(fileBase() + '.svg', exportSvg());
+  $('savePng').onclick = () => {
+    const svg = exportSvg(), img = new Image();
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = cv.outW; c.height = cv.outH;
+      c.getContext('2d').drawImage(img, 0, 0, cv.outW, cv.outH); URL.revokeObjectURL(url);
+      c.toBlob((blob) => blob ? save(fileBase() + '.png', blob) : say('Could not make the PNG.'), 'image/png');
+    };
+    img.onerror = () => say('Could not make the PNG.');
+    img.src = url;
+  };
+  $('copySvg').onclick = () => {
+    const svg = exportSvg();
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(svg).then(() => say('SVG copied. Paste it into Illustrator or Figma.'), () => say('Could not copy. Use a download instead.'));
+    else say('Could not copy. Use a download instead.');
+  };
+
+  sync(true);
+  renderTitle();
+})();
+</script>
+</body>
+</html>
